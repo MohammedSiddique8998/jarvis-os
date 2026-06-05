@@ -13,14 +13,14 @@ export type ChatMessage = {
 type ChatPanelProps = {
   messages: ChatMessage[];
   isTyping: boolean;
-  onSend: (message: string) => void;
+  onSend: (message: string) => Promise<string>;
 };
 
 const promptSuggestions = [
   "Plan my day",
-  "Bibby internship status",
-  "MSc dissertation focus",
-  "Tailor my CV",
+  "Prepare me for internship",
+  "Help me study",
+  "Review my dissertation progress",
 ];
 
 export default function ChatPanel({ messages, isTyping, onSend }: ChatPanelProps) {
@@ -38,7 +38,7 @@ export default function ChatPanel({ messages, isTyping, onSend }: ChatPanelProps
     event?.preventDefault();
     const command = value.trim();
     if (!command) return;
-    onSend(command);
+    void onSend(command);
     setValue("");
   }
 
@@ -58,7 +58,7 @@ export default function ChatPanel({ messages, isTyping, onSend }: ChatPanelProps
 
       <div
         ref={scrollRef}
-        className="min-h-[320px] flex-1 space-y-3 overflow-y-auto rounded-3xl border border-white/10 bg-black/25 p-4"
+        className="chat-window min-h-[320px] flex-1 space-y-3 overflow-y-auto p-4"
       >
         <AnimatePresence initial={false}>
           {messages.map((message) => {
@@ -107,7 +107,7 @@ export default function ChatPanel({ messages, isTyping, onSend }: ChatPanelProps
         {promptSuggestions.map((prompt) => (
           <button
             key={prompt}
-            onClick={() => onSend(prompt)}
+            onClick={() => void onSend(prompt)}
             className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-slate-300 transition hover:border-cyan-200/50 hover:text-cyan-100"
           >
             {prompt}
@@ -115,7 +115,7 @@ export default function ChatPanel({ messages, isTyping, onSend }: ChatPanelProps
         ))}
       </div>
 
-      <form onSubmit={submit} className="mt-3 flex items-center gap-2 rounded-3xl border border-cyan-200/20 bg-black/35 p-2">
+      <form onSubmit={submit} className="mt-3 flex items-center gap-2 rounded-full border border-cyan-200/20 bg-black/35 p-2 shadow-[inset_0_0_24px_rgba(34,211,238,0.08)]">
         <input
           value={value}
           onChange={(event) => setValue(event.target.value)}

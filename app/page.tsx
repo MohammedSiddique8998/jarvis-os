@@ -27,42 +27,42 @@ const initialMessages: ChatMessage[] = [
 const responseMap = [
   {
     match: ["internship", "bibby", "marine"],
-    status: "Working" as SystemStatus,
+    status: "thinking" as SystemStatus,
     agent: "Mission" as AgentMode,
     response:
       "Bibby Marine protocol active, Sid. Focus on domain notes, stakeholder questions, and one useful technical artefact per week.",
   },
   {
     match: ["dissertation", "msc", "research"],
-    status: "Thinking" as SystemStatus,
+    status: "thinking" as SystemStatus,
     agent: "Study" as AgentMode,
     response:
       "Dissertation mode engaged. I recommend a tight research question, reproducible experiments, and a leakage check before every result claim.",
   },
   {
     match: ["job", "application", "cv", "cover letter", "linkedin"],
-    status: "Working" as SystemStatus,
+    status: "thinking" as SystemStatus,
     agent: "Career" as AgentMode,
     response:
       "Career systems ready. I can frame a UK placement application around evidence, impact, tools, and ATS-friendly language.",
   },
   {
     match: ["portfolio", "project", "github"],
-    status: "Working" as SystemStatus,
+    status: "thinking" as SystemStatus,
     agent: "Portfolio" as AgentMode,
     response:
       "Portfolio lane selected. Build one polished AI project with a clear README, demo path, and honest model evaluation.",
   },
   {
     match: ["plan", "today", "priority", "mission"],
-    status: "Thinking" as SystemStatus,
+    status: "thinking" as SystemStatus,
     agent: "Core" as AgentMode,
     response:
       "Today I would run three blocks: dissertation progress, one targeted application, then portfolio refinement. Clean, calm execution.",
   },
   {
     match: ["voice", "listen", "speak"],
-    status: "Listening" as SystemStatus,
+    status: "listening" as SystemStatus,
     agent: "Voice" as AgentMode,
     response: "Voice channel is live, Sid. Speak naturally and I will route the command.",
   },
@@ -84,7 +84,7 @@ function generateResponse(command: string) {
 
   return (
     match ?? {
-      status: "Completed" as SystemStatus,
+      status: "idle" as SystemStatus,
       agent: "Core" as AgentMode,
       response:
         "Command received, Sid. I have logged the intent and I am ready for the next instruction.",
@@ -92,23 +92,9 @@ function generateResponse(command: string) {
   );
 }
 
-function speak(text: string) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-    return;
-  }
-
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-GB";
-  utterance.rate = 0.88;
-  utterance.pitch = 0.72;
-  utterance.volume = 0.9;
-  window.speechSynthesis.speak(utterance);
-}
-
 export default function Home() {
   const [agent, setAgent] = useState<AgentMode>("Core");
-  const [status, setStatus] = useState<SystemStatus>("Idle");
+  const [status, setStatus] = useState<SystemStatus>("idle");
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -119,15 +105,14 @@ export default function Home() {
 
   function handleAgentChange(nextAgent: AgentMode) {
     setAgent(nextAgent);
-    setStatus("Completed");
+    setStatus("idle");
     const response = `${nextAgent} mode activated, Sid.`;
     setMessages((previous) => [...previous, createMessage("jarvis", response)]);
-    speak(response);
   }
 
-  function handleCommand(command: string) {
+  function handleCommand(command: string, options: { voice?: boolean } = {}): Promise<string> {
     const trimmed = command.trim();
-    if (!trimmed) return;
+    if (!trimmed) return Promise.resolve("");
 
     const userMessage = createMessage("sid", trimmed);
     const result = generateResponse(trimmed);
@@ -136,79 +121,88 @@ export default function Home() {
     setStatus(result.status);
     setIsTyping(true);
 
-    window.setTimeout(() => {
-      setMessages((previous) => [
-        ...previous,
-        createMessage("jarvis", result.response),
-      ]);
-      setIsTyping(false);
-      setStatus("Completed");
-      speak(result.response);
-    }, 520);
+    return new Promise((resolve) => {
+      window.setTimeout(() => {
+        setMessages((previous) => [
+          ...previous,
+          createMessage("jarvis", result.response),
+        ]);
+        setIsTyping(false);
+        if (!options.voice) {
+          setStatus("idle");
+        }
+        resolve(result.response);
+      }, 620);
+    });
   }
 
-  function handleVoiceResult(text: string) {
-    setStatus("Thinking");
-    handleCommand(text);
+  async function handleVoiceResult(text: string) {
+    setStatus("thinking");
+    return handleCommand(text, { voice: true });
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#02040b] text-slate-100">
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_15%,rgba(103,232,249,0.2),transparent_28%),radial-gradient(circle_at_82%_74%,rgba(168,85,247,0.16),transparent_30%),linear-gradient(145deg,#02040b_0%,#06121f_46%,#030712_100%)]" />
-      <div className="fixed inset-0 starscape opacity-70" />
-      <div className="fixed inset-0 scanline opacity-20" />
+    <main className={`cinematic-shell status-${status}`}>
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(103,232,249,0.22),transparent_28%),radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.18),transparent_32%),linear-gradient(145deg,#02040b_0%,#06121f_44%,#030712_100%)]" />
+      <div className="fixed inset-0 starscape opacity-65" />
+      <div className="fixed inset-0 radial-grid opacity-70" />
+      <div className="fixed inset-0 scanline opacity-25" />
+      <div className="fixed inset-0 hud-vignette" />
 
-      <div className="relative z-10 grid min-h-screen grid-cols-[minmax(220px,260px)_1fr_minmax(300px,380px)] gap-4 p-4 max-xl:grid-cols-[220px_1fr] max-lg:grid-cols-1 max-lg:overflow-y-auto">
-        <AgentSidebar activeAgent={agent} onAgentChange={handleAgentChange} />
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.65 }}
+        className="fixed left-1/2 top-4 z-20 w-[min(820px,calc(100vw-2rem))] -translate-x-1/2"
+      >
+        <StatusPanel
+          agent={agent}
+          status={status}
+          latestMessage={lastJarvisMessage?.text ?? "Systems standing by."}
+        />
+      </motion.div>
 
-        <section className="relative flex min-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-[2rem] border border-cyan-300/20 bg-black/20 shadow-[0_0_80px_rgba(34,211,238,0.12)] backdrop-blur-xl max-lg:min-h-[740px]">
-          <StatusPanel
-            agent={agent}
-            status={status}
-            latestMessage={lastJarvisMessage?.text ?? "Systems standing by."}
-          />
+      <section className="pointer-events-none fixed inset-0 z-10">
+        <AvatarScene status={status} />
+        <motion.div
+          initial={{ opacity: 0, y: 28, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.12 }}
+          className="absolute bottom-[22vh] left-1/2 w-[min(820px,82vw)] -translate-x-1/2 text-center"
+        >
+          <p className="text-xs uppercase tracking-[0.58em] text-cyan-200/80 max-sm:tracking-[0.32em]">
+            Original Holographic Companion System
+          </p>
+          <h1 className="mt-3 text-6xl font-black tracking-[0.28em] text-white glow-text max-xl:text-5xl max-md:text-4xl max-sm:text-3xl">
+            JARVIS OS
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-cyan-100/75">
+            How may I assist you today, Sid?
+          </p>
+        </motion.div>
 
-          <div className="relative flex flex-1 items-center justify-center overflow-hidden">
-            <AvatarScene status={status} />
-
+        <AnimatePresence>
+          {status === "listening" && (
             <motion.div
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="pointer-events-none absolute bottom-8 left-1/2 w-[min(760px,82%)] -translate-x-1/2 text-center"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="absolute left-1/2 top-[18vh] -translate-x-1/2 rounded-full border border-cyan-300/40 bg-cyan-950/40 px-5 py-2 text-sm text-cyan-100 shadow-[0_0_45px_rgba(34,211,238,0.35)] backdrop-blur"
             >
-              <p className="text-xs uppercase tracking-[0.42em] text-cyan-200/80">
-                Humanoid Companion Core
-              </p>
-              <h1 className="mt-2 text-5xl font-black tracking-[0.24em] text-white glow-text max-md:text-3xl">
-                JARVIS OS
-              </h1>
-              <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-cyan-100/75">
-                How may I assist you today, Sid?
-              </p>
+              Listening for your command, Sid.
             </motion.div>
+          )}
+        </AnimatePresence>
+      </section>
 
-            <AnimatePresence>
-              {status === "Listening" && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="absolute top-24 rounded-full border border-cyan-300/40 bg-cyan-950/50 px-5 py-2 text-sm text-cyan-100 shadow-[0_0_35px_rgba(34,211,238,0.28)] backdrop-blur"
-                >
-                  Listening for your command, Sid.
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+      <div className="relative z-30 flex min-h-screen items-stretch justify-between gap-4 p-4 pt-36 max-xl:grid max-xl:grid-cols-[260px_1fr] max-lg:block max-lg:overflow-y-auto max-lg:pt-32">
+        <div className="floating-hud-left w-[260px] shrink-0 max-lg:mb-4 max-lg:w-full">
+          <AgentSidebar activeAgent={agent} onAgentChange={handleAgentChange} />
+        </div>
 
-          <VoiceOrb
-            status={status}
-            onStatusChange={setStatus}
-            onTranscript={handleVoiceResult}
-          />
-        </section>
+        <div className="pointer-events-none min-h-[580px] flex-1 max-lg:hidden" />
 
-        <aside className="flex min-h-[calc(100vh-2rem)] flex-col gap-4 max-xl:col-span-2 max-lg:col-span-1">
+        <aside className="floating-hud-right flex w-[390px] shrink-0 flex-col gap-4 max-xl:col-span-2 max-xl:w-full max-lg:w-full">
           <ChatPanel
             messages={messages}
             isTyping={isTyping}
@@ -216,6 +210,14 @@ export default function Home() {
           />
           <MissionPanel />
         </aside>
+      </div>
+
+      <div className="fixed bottom-4 left-1/2 z-40 w-[min(520px,calc(100vw-2rem))] -translate-x-1/2">
+        <VoiceOrb
+          status={status}
+          onStatusChange={setStatus}
+          onTranscript={handleVoiceResult}
+        />
       </div>
     </main>
   );

@@ -40,7 +40,7 @@ export default function AgentSidebar({
       initial={{ opacity: 0, x: -24 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.55 }}
-      className="hud-panel flex min-h-[calc(100vh-2rem)] flex-col gap-5 p-5 max-lg:min-h-0"
+      className="hud-panel flex max-h-[calc(100vh-10rem)] min-h-[520px] flex-col gap-5 p-5 max-lg:min-h-0 max-lg:max-h-none"
     >
       <div>
         <p className="text-xs uppercase tracking-[0.46em] text-cyan-200/70">
@@ -65,7 +65,7 @@ export default function AgentSidebar({
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.04 }}
               onClick={() => onAgentChange(name)}
-              className={`group flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition duration-300 ${
+              className={`group hud-command-button flex w-full items-center gap-3 p-3 text-left transition duration-300 ${
                 isActive
                   ? "border-cyan-200/80 bg-cyan-300/15 text-white shadow-[0_0_30px_rgba(34,211,238,0.25)]"
                   : "border-white/10 bg-white/[0.03] text-slate-300 hover:border-cyan-200/40 hover:bg-cyan-300/10"
@@ -89,7 +89,7 @@ export default function AgentSidebar({
         })}
       </div>
 
-      <div className="mt-auto rounded-3xl border border-cyan-200/15 bg-black/30 p-4">
+      <div className="mt-auto rounded-[1.5rem] border border-cyan-200/15 bg-black/30 p-4">
         <p className="text-xs uppercase tracking-[0.34em] text-cyan-200/70">
           Identity Lock
         </p>

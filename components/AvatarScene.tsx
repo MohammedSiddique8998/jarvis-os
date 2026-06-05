@@ -20,7 +20,8 @@ function ReactiveCamera() {
 
 function HolographicRings({ status }: { status: SystemStatus }) {
   const groupRef = useRef<THREE.Group>(null);
-  const ringColor = status === "Listening" ? "#67e8f9" : "#8b5cf6";
+  const ringColor =
+    status === "listening" ? "#67e8f9" : status === "speaking" ? "#60a5fa" : "#8b5cf6";
   const ringMaterial = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
@@ -34,7 +35,8 @@ function HolographicRings({ status }: { status: SystemStatus }) {
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
-    groupRef.current.rotation.y += delta * 0.32;
+    const speed = status === "thinking" ? 0.72 : status === "listening" ? 0.52 : 0.32;
+    groupRef.current.rotation.y += delta * speed;
     groupRef.current.rotation.z -= delta * 0.18;
   });
 
@@ -59,7 +61,8 @@ function HolographicRings({ status }: { status: SystemStatus }) {
 
 function ProceduralAvatar({ status }: { status: SystemStatus }) {
   const avatarRef = useRef<THREE.Group>(null);
-  const pulse = status === "Listening" ? 1.14 : status === "Thinking" ? 1.08 : 1;
+  const pulse =
+    status === "listening" ? 1.18 : status === "speaking" ? 1.12 : status === "thinking" ? 1.08 : 1;
 
   useFrame(({ clock }) => {
     if (!avatarRef.current) return;
@@ -72,9 +75,9 @@ function ProceduralAvatar({ status }: { status: SystemStatus }) {
 
   return (
     <Float speed={1.8} rotationIntensity={0.18} floatIntensity={0.38}>
-      <group ref={avatarRef} position={[0, -0.1, 0]}>
+      <group ref={avatarRef} position={[0, -0.24, 0]}>
         <mesh position={[0, 0.92, 0]}>
-          <sphereGeometry args={[0.42, 64, 64]} />
+          <sphereGeometry args={[0.58, 80, 80]} />
           <meshStandardMaterial
             color="#79f2ff"
             emissive="#0ea5e9"
@@ -85,8 +88,8 @@ function ProceduralAvatar({ status }: { status: SystemStatus }) {
             opacity={0.82}
           />
         </mesh>
-        <mesh position={[0, 0.18, 0]} scale={[0.76, 1, 0.34]}>
-          <capsuleGeometry args={[0.36, 0.92, 8, 28]} />
+        <mesh position={[0, 0.02, 0]} scale={[1.02, 1.18, 0.4]}>
+          <capsuleGeometry args={[0.42, 1.08, 8, 32]} />
           <meshStandardMaterial
             color="#4dd8ff"
             emissive="#2563eb"
@@ -98,16 +101,16 @@ function ProceduralAvatar({ status }: { status: SystemStatus }) {
             wireframe
           />
         </mesh>
-        <mesh position={[-0.52, 0.2, 0]} rotation={[0, 0, -0.38]}>
-          <capsuleGeometry args={[0.08, 0.72, 8, 18]} />
+        <mesh position={[-0.72, 0.1, 0]} rotation={[0, 0, -0.45]}>
+          <capsuleGeometry args={[0.09, 0.88, 8, 18]} />
           <meshStandardMaterial color="#a5f3fc" emissive="#06b6d4" emissiveIntensity={1.2} />
         </mesh>
-        <mesh position={[0.52, 0.2, 0]} rotation={[0, 0, 0.38]}>
-          <capsuleGeometry args={[0.08, 0.72, 8, 18]} />
+        <mesh position={[0.72, 0.1, 0]} rotation={[0, 0, 0.45]}>
+          <capsuleGeometry args={[0.09, 0.88, 8, 18]} />
           <meshStandardMaterial color="#a5f3fc" emissive="#06b6d4" emissiveIntensity={1.2} />
         </mesh>
-        <mesh position={[0, 0.92, 0.37]}>
-          <ringGeometry args={[0.18, 0.2, 64]} />
+        <mesh position={[0, 0.92, 0.52]}>
+          <ringGeometry args={[0.21, 0.24, 64]} />
           <meshBasicMaterial color="#f0fdff" transparent opacity={0.75} />
         </mesh>
       </group>
@@ -122,12 +125,12 @@ function SceneContent({ status }: { status: SystemStatus }) {
       <ambientLight intensity={0.6} />
       <pointLight position={[0, 2.4, 2.5]} intensity={55} color="#67e8f9" />
       <pointLight position={[-3, -1.5, -2]} intensity={25} color="#a855f7" />
-      <Stars radius={80} depth={42} count={1500} factor={4} saturation={0} fade speed={0.65} />
-      <Sparkles count={90} scale={[5.5, 3.8, 5.5]} size={2.2} speed={0.45} color="#67e8f9" />
+      <Stars radius={88} depth={44} count={900} factor={4} saturation={0} fade speed={0.45} />
+      <Sparkles count={68} scale={[6.2, 4.4, 6.2]} size={2.4} speed={0.38} color="#67e8f9" />
       <HolographicRings status={status} />
       <ProceduralAvatar status={status} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.96, 0]}>
-        <ringGeometry args={[0.74, 1.8, 160]} />
+        <ringGeometry args={[0.96, 2.32, 180]} />
         <meshBasicMaterial color="#22d3ee" transparent opacity={0.16} side={THREE.DoubleSide} />
       </mesh>
       <ReactiveCamera />
@@ -141,7 +144,7 @@ export default function AvatarScene({ status }: { status: SystemStatus }) {
       <Canvas camera={{ position: [0, 1.2, 4.2], fov: 45 }} dpr={[1, 1.65]}>
         <SceneContent status={status} />
       </Canvas>
-      <div className="pointer-events-none absolute right-5 top-5 rounded-full border border-cyan-200/20 bg-black/35 px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-cyan-100/70">
+      <div className="pointer-events-none absolute right-5 top-5 rounded-full border border-cyan-200/20 bg-black/25 px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-cyan-100/70 backdrop-blur">
         GLB ready: {AVATAR_MODEL_PATH}
       </div>
     </div>

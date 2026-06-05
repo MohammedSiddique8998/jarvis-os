@@ -47,7 +47,7 @@ export default function MissionPanel() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.08 }}
-            className="group rounded-3xl border border-cyan-200/15 bg-white/[0.035] p-4 transition hover:border-cyan-200/50 hover:bg-cyan-300/10"
+            className="group hologram-widget p-4 transition hover:border-cyan-200/50 hover:bg-cyan-300/10"
           >
             <div className="flex items-start gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-200/20 bg-cyan-300/10 text-cyan-100 shadow-[0_0_24px_rgba(34,211,238,0.12)]">
