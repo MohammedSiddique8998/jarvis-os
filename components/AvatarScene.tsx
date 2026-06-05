@@ -13,13 +13,17 @@ export const AVATAR_MODEL_PATH = "/models/jarvis-avatar.glb";
 export default function AvatarScene({ status }: { status: SystemStatus }) {
   return (
     <div className="absolute inset-0">
-      <Canvas camera={{ position: [0, 1.05, 4.45], fov: 43 }} dpr={[1, 1.55]}>
+      <Canvas
+        camera={{ position: [0, 1.05, 4.45], fov: 43 }}
+        dpr={[0.85, 1.2]}
+        gl={{ antialias: false, powerPreference: "high-performance" }}
+      >
         <color attach="background" args={["#02040b"]} />
         <ambientLight intensity={0.62} />
         <pointLight position={[0, 2.8, 2.4]} intensity={58} color="#67e8f9" />
         <pointLight position={[-3.2, -1.4, -2.2]} intensity={24} color="#a855f7" />
         <pointLight position={[2.8, 0.2, 1.4]} intensity={16} color="#60a5fa" />
-        <Stars radius={88} depth={44} count={760} factor={4} saturation={0} fade speed={0.38} />
+        <Stars radius={88} depth={44} count={520} factor={4} saturation={0} fade speed={0.3} />
         <AvatarEffects status={status} />
         <VoiceReactiveAvatar status={status}>
           <AvatarRenderer status={status} modelPath={AVATAR_MODEL_PATH} />

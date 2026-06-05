@@ -1,9 +1,15 @@
 # Avatar Models
 
-Place the production humanoid companion model here:
+The production companion model is loaded from:
 
 ```text
 public/models/jarvis-avatar.glb
 ```
 
-The current JARVIS OS scene renders a procedural holographic fallback so the app remains deployable even when the GLB asset is not present.
+The current v7 asset was extracted from `computer.zip` and standardized from `source/system.glb` to `jarvis-avatar.glb`. Supporting texture exports live in `public/models/textures/`.
+
+If this model is replaced later, keep the public URL stable:
+
+```text
+/models/jarvis-avatar.glb
+```

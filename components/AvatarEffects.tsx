@@ -78,7 +78,7 @@ function ScanningPlane({ status }: { status: SystemStatus }) {
 }
 
 export default function AvatarEffects({ status }: { status: SystemStatus }) {
-  const particleCount = status === "thinking" ? 118 : status === "listening" ? 92 : 62;
+  const particleCount = status === "thinking" ? 84 : status === "listening" ? 68 : 48;
 
   return (
     <>
