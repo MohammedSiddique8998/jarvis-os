@@ -1,90 +1,68 @@
 @import "tailwindcss";
 
-* {
-  box-sizing: border-box;
-}
-
+html,
 body {
   margin: 0;
-  background: #020617;
-  color: white;
+  height: 100%;
   overflow: hidden;
+  background: #020617;
 }
 
-.galaxy-bg {
-  background:
-    radial-gradient(circle at 50% 20%, rgba(0, 229, 255, 0.25), transparent 25%),
-    radial-gradient(circle at 80% 10%, rgba(168, 85, 247, 0.22), transparent 28%),
-    radial-gradient(circle at 20% 80%, rgba(14, 165, 233, 0.22), transparent 30%),
-    linear-gradient(135deg, #020617, #020617 45%, #031026);
+.hud-panel {
+  background: rgba(2, 12, 28, 0.72);
+  border: 1px solid rgba(34, 211, 238, 0.45);
+  box-shadow:
+    0 0 22px rgba(34, 211, 238, 0.25),
+    inset 0 0 18px rgba(34, 211, 238, 0.08);
+  backdrop-filter: blur(10px);
 }
 
-.stars {
-  background-image:
-    radial-gradient(white 1px, transparent 1px),
-    radial-gradient(#00eaff 1px, transparent 1px);
-  background-size: 80px 80px, 140px 140px;
-  animation: moveStars 40s linear infinite;
-}
-
-@keyframes moveStars {
-  from { background-position: 0 0, 0 0; }
-  to { background-position: 1000px 500px, -800px 700px; }
-}
-
-.robot-head {
-  width: 220px;
-  height: 280px;
-  background: linear-gradient(145deg, #0f172a, #111827, #38bdf8);
-  border-radius: 45% 45% 38% 38%;
-  box-shadow: 0 0 80px rgba(34, 211, 238, 0.6);
-  position: relative;
-  animation: floatRobot 4s ease-in-out infinite;
-}
-
-.robot-head::before,
-.robot-head::after {
-  content: "";
-  position: absolute;
-  top: 105px;
-  width: 55px;
-  height: 14px;
-  background: #67e8f9;
-  box-shadow: 0 0 25px #67e8f9;
-  border-radius: 999px;
-}
-
-.robot-head::before {
-  left: 45px;
-}
-
-.robot-head::after {
-  right: 45px;
-}
-
-.arc-reactor {
-  width: 95px;
-  height: 95px;
-  border-radius: 999px;
-  border: 3px solid #67e8f9;
-  box-shadow: 0 0 55px #22d3ee;
-  background: radial-gradient(circle, #e0faff, #06b6d4, transparent 65%);
-  animation: pulseCore 1.8s infinite;
-}
-
-@keyframes floatRobot {
-  0%, 100% { transform: translateY(0) rotateY(0deg); }
-  50% { transform: translateY(-18px) rotateY(8deg); }
-}
-
-@keyframes pulseCore {
-  0%, 100% { transform: scale(1); opacity: 0.85; }
-  50% { transform: scale(1.08); opacity: 1; }
-}
-
-.hud-card {
+.hud-button {
+  background: rgba(8, 47, 73, 0.65);
   border: 1px solid rgba(34, 211, 238, 0.35);
-  background: rgba(2, 6, 23, 0.72);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 0 35px rgba(34, 211, 238, 0.18);
+  box-shadow: inset 0 0 14px rgba(34, 211, 238, 0.08);
+}
+
+.hud-button:hover {
+  background: rgba(6, 182, 212, 0.18);
+  box-shadow: 0 0 22px rgba(34, 211, 238, 0.35);
+}
+
+.scanline {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(34, 211, 238, 0.12),
+    transparent
+  );
+  animation: scan 4s linear infinite;
+}
+
+@keyframes scan {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.wave {
+  height: 34px;
+  background: repeating-linear-gradient(
+    90deg,
+    #22d3ee 0 3px,
+    transparent 3px 9px
+  );
+  mask-image: linear-gradient(to top, transparent, black, transparent);
+  animation: waveMove 0.8s linear infinite;
+}
+
+@keyframes waveMove {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(18px);
+  }
 }
