@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JARVIS OS
 
-## Getting Started
+JARVIS OS is a cinematic AI companion interface for Sid. It replaces the earlier dashboard-style prototype with a full-screen holographic operating system built on Next.js, Three.js, Framer Motion, speech recognition, and speech synthesis.
 
-First, run the development server:
+## Production Direction
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Futuristic AI companion experience, not a business dashboard
+- Humanoid holographic avatar scene with particles, rings, galaxy background, and mouse-reactive camera movement
+- ChatGPT-style conversation panel with transitions, scroll management, and typing indicators
+- Voice interaction using the browser Web Speech APIs where supported
+- Mission widgets for Bibby Marine Internship, MSc Dissertation, Job Applications, and AI Portfolio
+- UI copy uses "Sid" and avoids displaying legacy full-name identity fields
+
+## Architecture
+
+```text
+app/
+  layout.tsx
+  page.tsx
+  globals.css
+components/
+  AgentSidebar.tsx
+  AvatarScene.tsx
+  ChatPanel.tsx
+  MissionPanel.tsx
+  StatusPanel.tsx
+  VoiceOrb.tsx
+public/
+  models/
+    README.md
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Avatar Model Support
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The scene is production-safe without a model file because it renders a procedural holographic humanoid fallback. To use a custom model, place it at:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```text
+public/models/jarvis-avatar.glb
+```
 
-## Learn More
+The UI reserves this path for the JARVIS avatar asset.
 
-To learn more about Next.js, take a look at the following resources:
+## Local Development
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm install
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000](http://localhost:3000).
 
-## Deploy on Vercel
+## Build Validation
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run lint
+npm run build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Voice Support
+
+Voice features use browser speech recognition and speech synthesis. They work best in Chrome or Edge. If speech recognition is unavailable, typed commands remain fully usable.
+
+## Deployment
+
+This project is optimized for Vercel:
+
+```bash
+npm run build
+```
+
+No paid API key is required for the current client-side companion experience.

@@ -1,296 +1,221 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import {
-  Mic,
-  Send,
-  Brain,
-  Briefcase,
-  GraduationCap,
-  Shield,
-  Rocket,
-  Settings,
-  Zap,
-} from "lucide-react";
-import JarvisScene from "./JarvisScene";
+import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import AgentSidebar from "@/components/AgentSidebar";
+import AvatarScene from "@/components/AvatarScene";
+import ChatPanel, { ChatMessage } from "@/components/ChatPanel";
+import MissionPanel from "@/components/MissionPanel";
+import StatusPanel, { SystemStatus } from "@/components/StatusPanel";
+import VoiceOrb from "@/components/VoiceOrb";
 
-declare global {
-  interface Window {
-    webkitSpeechRecognition: any;
-  }
-}
+type AgentMode = "Core" | "Study" | "Career" | "Mission" | "Portfolio" | "Voice";
 
-const agents = [
-  ["Chief", Brain],
-  ["Career", Briefcase],
-  ["Study", GraduationCap],
-  ["Internship", Shield],
-  ["Dissertation", Rocket],
-  ["System", Settings],
+const initialMessages: ChatMessage[] = [
+  {
+    id: "boot-1",
+    role: "jarvis",
+    text: "Good evening, Sid. Companion interface online.",
+  },
+  {
+    id: "boot-2",
+    role: "jarvis",
+    text: "Mission stack loaded: internship, dissertation, applications, and AI portfolio.",
+  },
 ];
 
-export default function Home() {
-  const [input, setInput] = useState("");
-  const [status, setStatus] = useState("ONLINE");
-  const [agent, setAgent] = useState("Chief");
-  const [messages, setMessages] = useState([
-    "JARVIS: Online. Good evening, Sid.",
-    "JARVIS: Companion interface activated.",
-  ]);
+const responseMap = [
+  {
+    match: ["internship", "bibby", "marine"],
+    status: "Working" as SystemStatus,
+    agent: "Mission" as AgentMode,
+    response:
+      "Bibby Marine protocol active, Sid. Focus on domain notes, stakeholder questions, and one useful technical artefact per week.",
+  },
+  {
+    match: ["dissertation", "msc", "research"],
+    status: "Thinking" as SystemStatus,
+    agent: "Study" as AgentMode,
+    response:
+      "Dissertation mode engaged. I recommend a tight research question, reproducible experiments, and a leakage check before every result claim.",
+  },
+  {
+    match: ["job", "application", "cv", "cover letter", "linkedin"],
+    status: "Working" as SystemStatus,
+    agent: "Career" as AgentMode,
+    response:
+      "Career systems ready. I can frame a UK placement application around evidence, impact, tools, and ATS-friendly language.",
+  },
+  {
+    match: ["portfolio", "project", "github"],
+    status: "Working" as SystemStatus,
+    agent: "Portfolio" as AgentMode,
+    response:
+      "Portfolio lane selected. Build one polished AI project with a clear README, demo path, and honest model evaluation.",
+  },
+  {
+    match: ["plan", "today", "priority", "mission"],
+    status: "Thinking" as SystemStatus,
+    agent: "Core" as AgentMode,
+    response:
+      "Today I would run three blocks: dissertation progress, one targeted application, then portfolio refinement. Clean, calm execution.",
+  },
+  {
+    match: ["voice", "listen", "speak"],
+    status: "Listening" as SystemStatus,
+    agent: "Voice" as AgentMode,
+    response: "Voice channel is live, Sid. Speak naturally and I will route the command.",
+  },
+];
 
-  function speak(text: string) {
-    window.speechSynthesis.cancel();
-    const speech = new SpeechSynthesisUtterance(text);
-    speech.lang = "en-GB";
-    speech.rate = 0.82;
-    speech.pitch = 0.62;
-    speech.volume = 1;
-    window.speechSynthesis.speak(speech);
+function createMessage(role: ChatMessage["role"], text: string): ChatMessage {
+  return {
+    id: `${role}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    role,
+    text,
+  };
+}
+
+function generateResponse(command: string) {
+  const normalized = command.toLowerCase();
+  const match = responseMap.find((item) =>
+    item.match.some((keyword) => normalized.includes(keyword)),
+  );
+
+  return (
+    match ?? {
+      status: "Completed" as SystemStatus,
+      agent: "Core" as AgentMode,
+      response:
+        "Command received, Sid. I have logged the intent and I am ready for the next instruction.",
+    }
+  );
+}
+
+function speak(text: string) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    return;
   }
 
-  function reply(command: string) {
-    const lower = command.toLowerCase();
-    let response = `${agent} mode active. Command received, Sid.`;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "en-GB";
+  utterance.rate = 0.88;
+  utterance.pitch = 0.72;
+  utterance.volume = 0.9;
+  window.speechSynthesis.speak(utterance);
+}
 
-    if (lower.includes("plan")) {
-      response =
-        "Today’s mission stack: internship preparation, dissertation progress, job applications, and portfolio refinement.";
-    } else if (lower.includes("internship")) {
-      response =
-        "Internship protocol active. Learn fast, document daily, ask precise questions, and build trust from day one.";
-    } else if (lower.includes("study")) {
-      response =
-        "Study mode active. Forty five minutes of focused execution. No distractions, Sid.";
-    } else if (lower.includes("motivate")) {
-      response =
-        "You are not behind, Sid. You are building momentum. Stay sharp, execute calmly, and keep moving.";
-    }
+export default function Home() {
+  const [agent, setAgent] = useState<AgentMode>("Core");
+  const [status, setStatus] = useState<SystemStatus>("Idle");
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [isTyping, setIsTyping] = useState(false);
 
-    setMessages((prev) => [...prev, `SID: ${command}`, `JARVIS: ${response}`]);
+  const lastJarvisMessage = useMemo(
+    () => [...messages].reverse().find((message) => message.role === "jarvis"),
+    [messages],
+  );
+
+  function handleAgentChange(nextAgent: AgentMode) {
+    setAgent(nextAgent);
+    setStatus("Completed");
+    const response = `${nextAgent} mode activated, Sid.`;
+    setMessages((previous) => [...previous, createMessage("jarvis", response)]);
     speak(response);
   }
 
-  function sendMessage() {
-    if (!input.trim()) return;
-    reply(input);
-    setInput("");
+  function handleCommand(command: string) {
+    const trimmed = command.trim();
+    if (!trimmed) return;
+
+    const userMessage = createMessage("sid", trimmed);
+    const result = generateResponse(trimmed);
+    setMessages((previous) => [...previous, userMessage]);
+    setAgent(result.agent);
+    setStatus(result.status);
+    setIsTyping(true);
+
+    window.setTimeout(() => {
+      setMessages((previous) => [
+        ...previous,
+        createMessage("jarvis", result.response),
+      ]);
+      setIsTyping(false);
+      setStatus("Completed");
+      speak(result.response);
+    }, 520);
   }
 
-  function listen() {
-    const SpeechRecognition = window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      alert("Voice recognition works best in Google Chrome.");
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-GB";
-    recognition.start();
-
-    setStatus("LISTENING");
-
-    recognition.onresult = (event: any) => {
-      const text = event.results[0][0].transcript;
-      setInput(text);
-      setStatus("THINKING");
-      reply(text);
-      setStatus("ONLINE");
-    };
-
-    recognition.onend = () => setStatus("ONLINE");
+  function handleVoiceResult(text: string) {
+    setStatus("Thinking");
+    handleCommand(text);
   }
 
   return (
-    <main className="relative h-screen overflow-hidden bg-[#020617] text-cyan-200">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(34,211,238,0.22),transparent_30%),radial-gradient(circle_at_20%_80%,rgba(168,85,247,0.18),transparent_30%),linear-gradient(135deg,#020617,#020617,#06111f)]" />
-      <div className="scanline absolute inset-0 opacity-20" />
+    <main className="relative min-h-screen overflow-hidden bg-[#02040b] text-slate-100">
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_15%,rgba(103,232,249,0.2),transparent_28%),radial-gradient(circle_at_82%_74%,rgba(168,85,247,0.16),transparent_30%),linear-gradient(145deg,#02040b_0%,#06121f_46%,#030712_100%)]" />
+      <div className="fixed inset-0 starscape opacity-70" />
+      <div className="fixed inset-0 scanline opacity-20" />
 
-      <div className="relative z-10 grid h-screen grid-cols-[280px_1fr_320px] gap-5 p-5">
-        <motion.aside
-          initial={{ x: -80, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          className="hud-glass hud-border rounded-3xl p-5"
-        >
-          <h1 className="glow-text text-3xl font-black tracking-[0.25em]">
-            JARVIS
-          </h1>
-          <p className="mb-8 mt-2 text-xs tracking-[0.35em] text-cyan-400">
-            COMPANION OS
-          </p>
+      <div className="relative z-10 grid min-h-screen grid-cols-[minmax(220px,260px)_1fr_minmax(300px,380px)] gap-4 p-4 max-xl:grid-cols-[220px_1fr] max-lg:grid-cols-1 max-lg:overflow-y-auto">
+        <AgentSidebar activeAgent={agent} onAgentChange={handleAgentChange} />
 
-          <div className="space-y-3">
-            {agents.map(([name, Icon]: any) => (
-              <button
-                key={name}
-                onClick={() => {
-                  setAgent(name);
-                  speak(`${name} mode activated, Sid.`);
-                }}
-                className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-4 transition hover:scale-[1.03] ${
-                  agent === name
-                    ? "border-cyan-300 bg-cyan-400/20 text-white shadow-[0_0_25px_rgba(34,211,238,0.35)]"
-                    : "border-cyan-400/25 bg-black/30"
-                }`}
-              >
-                <Icon size={21} />
-                <span>{name} Mode</span>
-              </button>
-            ))}
-          </div>
+        <section className="relative flex min-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-[2rem] border border-cyan-300/20 bg-black/20 shadow-[0_0_80px_rgba(34,211,238,0.12)] backdrop-blur-xl max-lg:min-h-[740px]">
+          <StatusPanel
+            agent={agent}
+            status={status}
+            latestMessage={lastJarvisMessage?.text ?? "Systems standing by."}
+          />
 
-          <div className="mt-8 rounded-2xl border border-cyan-400/30 bg-black/35 p-4 text-sm">
-            <p className="text-emerald-400">● ONLINE</p>
-            <p>● Voice System Ready</p>
-            <p>● Visual Core Active</p>
-            <p>● Agent: {agent}</p>
-          </div>
-        </motion.aside>
-
-        <section className="relative flex flex-col items-center justify-between">
-          <motion.div
-            initial={{ y: -40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="hud-glass hud-border w-full rounded-3xl p-4 text-center"
-          >
-            <p className="text-xs uppercase tracking-[0.5em] text-cyan-400">
-              Good Evening Sid
-            </p>
-            <h2 className="glow-text text-5xl font-black tracking-[0.25em]">
-              JARVIS ONLINE
-            </h2>
-            <p className="text-cyan-300">Status: {status}</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ scale: 0.88, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            className="relative h-[520px] w-full"
-          >
-            <div className="absolute inset-0">
-              <JarvisScene />
-            </div>
+          <div className="relative flex flex-1 items-center justify-center overflow-hidden">
+            <AvatarScene status={status} />
 
             <motion.div
-              animate={{
-                scale: [1, 1.06, 1],
-                opacity: [0.65, 1, 0.65],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-              }}
-              className="pointer-events-none absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/30 shadow-[0_0_120px_rgba(34,211,238,0.45)]"
-            />
-
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-              className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-purple-400/25"
-            />
-
-            <div className="absolute bottom-8 left-1/2 w-[72%] -translate-x-1/2 rounded-3xl border border-cyan-400/35 bg-black/55 p-4 text-center shadow-[0_0_45px_rgba(34,211,238,0.25)] backdrop-blur">
-              <p className="text-xl font-semibold text-white">
-                How can I assist you, Sid?
-              </p>
-              <p className="text-sm text-cyan-300">
-                Speak naturally. I am listening.
-              </p>
-            </div>
-          </motion.div>
-
-          <div className="hud-glass hud-border flex w-full items-center gap-4 rounded-3xl p-4">
-            <button
-              onClick={listen}
-              className="flex h-16 w-16 items-center justify-center rounded-full border border-cyan-300 bg-cyan-400/20 shadow-[0_0_45px_rgba(34,211,238,0.55)] transition hover:scale-110"
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="pointer-events-none absolute bottom-8 left-1/2 w-[min(760px,82%)] -translate-x-1/2 text-center"
             >
-              <Mic size={30} />
-            </button>
+              <p className="text-xs uppercase tracking-[0.42em] text-cyan-200/80">
+                Humanoid Companion Core
+              </p>
+              <h1 className="mt-2 text-5xl font-black tracking-[0.24em] text-white glow-text max-md:text-3xl">
+                JARVIS OS
+              </h1>
+              <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-cyan-100/75">
+                How may I assist you today, Sid?
+              </p>
+            </motion.div>
 
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Speak or type your command, Sid..."
-              className="flex-1 rounded-2xl border border-cyan-400/30 bg-black/60 px-5 py-4 outline-none"
-            />
-
-            <button
-              onClick={sendMessage}
-              className="rounded-2xl bg-cyan-600 p-4 text-white shadow-[0_0_30px_rgba(34,211,238,0.45)] transition hover:scale-105"
-            >
-              <Send />
-            </button>
+            <AnimatePresence>
+              {status === "Listening" && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="absolute top-24 rounded-full border border-cyan-300/40 bg-cyan-950/50 px-5 py-2 text-sm text-cyan-100 shadow-[0_0_35px_rgba(34,211,238,0.28)] backdrop-blur"
+                >
+                  Listening for your command, Sid.
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
+
+          <VoiceOrb
+            status={status}
+            onStatusChange={setStatus}
+            onTranscript={handleVoiceResult}
+          />
         </section>
 
-        <motion.aside
-          initial={{ x: 80, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          className="space-y-5"
-        >
-          <div className="hud-glass hud-border rounded-3xl p-5">
-            <h3 className="mb-4 text-xl font-bold text-white">
-              Live Conversation
-            </h3>
-
-            <div className="h-[300px] overflow-y-auto rounded-2xl border border-cyan-400/25 bg-black/40 p-4 text-sm">
-              {messages.map((msg, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-3 rounded-xl bg-cyan-950/35 p-3"
-                >
-                  {msg}
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          <div className="hud-glass hud-border rounded-3xl p-5">
-            <h3 className="mb-4 text-xl font-bold text-white">
-              Voice Activity
-            </h3>
-
-            <div className="voice-bars">
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
-            </div>
-
-            <p className="mt-4 text-sm text-cyan-300">
-              Current State: {status}
-            </p>
-          </div>
-
-          <div className="hud-glass hud-border rounded-3xl p-5">
-            <h3 className="mb-4 text-xl font-bold text-white">
-              Mission Stack
-            </h3>
-
-            {[
-              "Bibby Marine Internship",
-              "MSc Dissertation",
-              "Job Applications",
-              "AI Portfolio",
-            ].map((task) => (
-              <div
-                key={task}
-                className="mb-3 flex items-center gap-3 rounded-xl border border-cyan-400/25 bg-black/35 p-3"
-              >
-                <Zap size={18} className="text-cyan-300" />
-                <span>{task}</span>
-              </div>
-            ))}
-          </div>
-        </motion.aside>
+        <aside className="flex min-h-[calc(100vh-2rem)] flex-col gap-4 max-xl:col-span-2 max-lg:col-span-1">
+          <ChatPanel
+            messages={messages}
+            isTyping={isTyping}
+            onSend={handleCommand}
+          />
+          <MissionPanel />
+        </aside>
       </div>
     </main>
   );
