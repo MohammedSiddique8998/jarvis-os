@@ -1,65 +1,230 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { Mic, Send, Brain, Briefcase, GraduationCap, Rocket } from "lucide-react";
+
+declare global {
+  interface Window {
+    webkitSpeechRecognition: any;
+  }
+}
 
 export default function Home() {
+  const [input, setInput] = useState("");
+  const [status, setStatus] = useState("ONLINE");
+  const [messages, setMessages] = useState([
+    "JARVIS: Online. Good evening, Sid.",
+    "JARVIS: Voice systems ready. Speak your command.",
+  ]);
+
+  function speak(text: string) {
+    window.speechSynthesis.cancel();
+    const speech = new SpeechSynthesisUtterance(text);
+    speech.rate = 0.82;
+    speech.pitch = 0.65;
+    speech.volume = 1;
+    speech.lang = "en-GB";
+    window.speechSynthesis.speak(speech);
+  }
+
+  function reply(command: string) {
+    let response = "Command received, Sid. I am ready to assist.";
+
+    if (command.toLowerCase().includes("plan")) {
+      response =
+        "Certainly, Sid. Priority one: internship preparation. Priority two: dissertation. Priority three: job applications. Priority four: portfolio improvement.";
+    }
+
+    if (command.toLowerCase().includes("study")) {
+      response =
+        "Study mode activated. Focus for forty five minutes. No distractions. I will hold the line.";
+    }
+
+    if (command.toLowerCase().includes("internship")) {
+      response =
+        "Internship protocol activated. Learn fast, document daily, ask precise questions, and build trust from day one.";
+    }
+
+    setMessages((prev) => [...prev, `SID: ${command}`, `JARVIS: ${response}`]);
+    speak(response);
+  }
+
+  function sendMessage() {
+    if (!input.trim()) return;
+    reply(input);
+    setInput("");
+  }
+
+  function listen() {
+    const SpeechRecognition = window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert("Use Google Chrome for voice recognition.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-GB";
+    recognition.start();
+
+    setStatus("LISTENING");
+
+    recognition.onresult = (event: any) => {
+      const text = event.results[0][0].transcript;
+      setInput(text);
+      setStatus("THINKING");
+      reply(text);
+      setStatus("ONLINE");
+    };
+
+    recognition.onend = () => setStatus("ONLINE");
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="galaxy-bg relative min-h-screen overflow-hidden text-cyan-200">
+      <div className="stars absolute inset-0" />
+
+      <div className="relative z-10 grid h-screen grid-cols-[310px_1fr_360px] gap-5 p-5">
+        <aside className="hud-card rounded-3xl p-6">
+          <h1 className="mb-8 text-3xl font-black tracking-[0.25em] text-cyan-300">
+            JARVIS OS
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+
+          {[
+            "Chief of Staff",
+            "Career Coach",
+            "Study Mentor",
+            "Dissertation AI",
+            "Internship Coach",
+            "Life Admin",
+          ].map((agent) => (
+            <button
+              key={agent}
+              onClick={() => speak(`${agent} activated, Sid.`)}
+              className="mb-4 w-full rounded-2xl border border-cyan-400/30 bg-cyan-950/30 px-5 py-4 text-left text-lg hover:bg-cyan-400/20"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              {agent} ›
+            </button>
+          ))}
+
+          <div className="mt-8 rounded-2xl border border-cyan-400/30 p-4">
+            <p className="text-cyan-300">SYSTEM STATUS</p>
+            <p className="mt-2 text-emerald-400">● JARVIS Online</p>
+            <p>● Voice Engine Ready</p>
+            <p>● Visual Core Active</p>
+          </div>
+        </aside>
+
+        <section className="flex flex-col gap-5">
+          <header className="hud-card rounded-3xl p-6">
+            <p className="text-sm uppercase tracking-[0.5em] text-cyan-400">
+              Personal AI Command Center
+            </p>
+            <h2 className="text-5xl font-black text-white">
+              Good evening, Sid
+            </h2>
+            <p className="mt-2 text-cyan-300">
+              Speak naturally. I am listening.
+            </p>
+          </header>
+
+          <div className="hud-card relative flex-1 overflow-hidden rounded-3xl p-6">
+            <div className="absolute right-6 top-6 text-emerald-400">
+              ● {status}
+            </div>
+
+            <div className="flex h-full items-center gap-10">
+              <div className="flex w-1/2 flex-col items-center justify-center">
+                <div className="robot-head mb-8" />
+                <div className="arc-reactor" />
+                <p className="mt-6 text-4xl font-black tracking-[0.25em] text-cyan-300">
+                  JARVIS
+                </p>
+                <p className="text-cyan-400">ONLINE</p>
+              </div>
+
+              <div className="w-1/2">
+                <div className="mb-5 rounded-2xl border border-cyan-400/30 bg-black/50 p-5 text-xl">
+                  How can I assist you today, Sid?
+                </div>
+
+                <div className="h-[360px] overflow-y-auto rounded-2xl border border-cyan-400/30 bg-black/50 p-5">
+                  {messages.map((msg, i) => (
+                    <div key={i} className="mb-4 rounded-xl bg-cyan-950/30 p-4">
+                      {msg}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              onClick={listen}
+              className="rounded-2xl bg-cyan-500/20 px-6 shadow-[0_0_35px_rgba(34,211,238,0.35)]"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+              <Mic />
+            </button>
+
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              placeholder="Speak or type your command, Sid..."
+              className="flex-1 rounded-2xl border border-cyan-400/30 bg-black/70 px-6 py-5 outline-none"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+            <button
+              onClick={sendMessage}
+              className="rounded-2xl bg-cyan-600 px-7 text-white"
+            >
+              <Send />
+            </button>
+          </div>
+        </section>
+
+        <aside className="space-y-5">
+          <div className="hud-card rounded-3xl p-6">
+            <h3 className="mb-5 text-2xl font-bold text-white">
+              Mission Dashboard
+            </h3>
+
+            <div className="space-y-4">
+              <Card icon={<Rocket />} title="Bibby Marine" status="In Progress" />
+              <Card icon={<GraduationCap />} title="MSc Dissertation" status="Planning" />
+              <Card icon={<Briefcase />} title="Job Applications" status="Active" />
+              <Card icon={<Brain />} title="Memory Core" status="Ready" />
+            </div>
+          </div>
+
+          <div className="hud-card rounded-3xl p-6">
+            <h3 className="mb-3 text-2xl font-bold text-white">Memory Core</h3>
+            <p>
+              I track your priorities: internship, dissertation, career,
+              portfolio, and daily execution.
+            </p>
+          </div>
+        </aside>
+      </div>
+    </main>
+  );
+}
+
+function Card({
+  icon,
+  title,
+  status,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  status: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-cyan-400/30 bg-black/40 p-4">
+      <div className="mb-2 text-cyan-300">{icon}</div>
+      <p className="font-bold text-white">{title}</p>
+      <p className="text-sm text-cyan-300">{status}</p>
     </div>
   );
 }
