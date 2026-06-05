@@ -166,6 +166,68 @@ button {
     linear-gradient(90deg, rgba(2, 4, 11, 0.5), transparent 28%, transparent 72%, rgba(2, 4, 11, 0.5));
 }
 
+.startup-card {
+  width: min(640px, calc(100vw - 2rem));
+  border: 1px solid rgba(103, 232, 249, 0.22);
+  border-radius: 2rem 0.8rem 2rem 0.8rem;
+  background:
+    radial-gradient(circle at center top, rgba(103, 232, 249, 0.18), transparent 48%),
+    linear-gradient(135deg, rgba(8, 47, 73, 0.45), rgba(2, 6, 23, 0.72));
+  padding: 3rem 2rem;
+  box-shadow:
+    0 0 90px rgba(34, 211, 238, 0.2),
+    inset 0 0 42px rgba(103, 232, 249, 0.055);
+}
+
+.startup-core {
+  width: 7rem;
+  height: 7rem;
+  border: 1px solid rgba(165, 243, 252, 0.66);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(240, 253, 255, 0.95), rgba(34, 211, 238, 0.35) 34%, rgba(168, 85, 247, 0.16) 72%, transparent),
+    repeating-conic-gradient(from 0deg, rgba(103, 232, 249, 0.5) 0deg 4deg, transparent 4deg 18deg);
+  box-shadow:
+    0 0 50px rgba(34, 211, 238, 0.56),
+    0 0 110px rgba(168, 85, 247, 0.24),
+    inset 0 0 28px rgba(255, 255, 255, 0.2);
+  animation: startupPulse 1.45s ease-in-out infinite, rotateGrid 8s linear infinite;
+}
+
+.avatar-data-label {
+  position: absolute;
+  z-index: 3;
+  border: 1px solid rgba(103, 232, 249, 0.22);
+  border-radius: 999px;
+  background: rgba(2, 6, 23, 0.36);
+  padding: 0.45rem 0.75rem;
+  color: rgba(207, 250, 254, 0.78);
+  font-size: 0.65rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.14);
+}
+
+.avatar-data-label::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 3.8rem;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(103, 232, 249, 0.5), transparent);
+}
+
+.avatar-data-label.left-\[18\%\]::before,
+.avatar-data-label.bottom-\[28\%\]::before {
+  left: 100%;
+}
+
+.avatar-data-label.right-\[18\%\]::before {
+  right: 100%;
+  transform: rotate(180deg);
+}
+
 .glow-text {
   text-shadow:
     0 0 14px rgba(103, 232, 249, 0.95),
@@ -359,6 +421,18 @@ button {
   }
   50% {
     transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+@keyframes startupPulse {
+  0%,
+  100% {
+    transform: scale(0.96);
+    opacity: 0.78;
+  }
+  50% {
+    transform: scale(1.06);
     opacity: 1;
   }
 }

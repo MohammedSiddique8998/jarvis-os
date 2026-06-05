@@ -22,9 +22,12 @@ app/
 components/
   AgentSidebar.tsx
   AvatarScene.tsx
+  AvatarRenderer.tsx
+  AvatarEffects.tsx
   ChatPanel.tsx
   MissionPanel.tsx
   StatusPanel.tsx
+  VoiceReactiveAvatar.tsx
   VoiceOrb.tsx
 public/
   models/
@@ -33,13 +36,13 @@ public/
 
 ## Avatar Model Support
 
-The scene is production-safe without a model file because it renders a procedural holographic humanoid fallback. To use a custom model, place it at:
+The scene is production-safe without a model file because it renders a procedural holographic AI face with animated eyes, breathing motion, cursor-following head movement, and voice-reactive glow. To use a custom premium humanoid model from Ready Player Me, Sketchfab, Mixamo, Spline, or another GLB source, place it at:
 
 ```text
 public/models/jarvis-avatar.glb
 ```
 
-The UI reserves this path for the JARVIS avatar asset.
+The UI checks this path at runtime. If the file exists, `AvatarRenderer.tsx` renders the GLB model. If it does not exist, the holographic face fallback is used automatically.
 
 ## Local Development
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import AgentSidebar from "@/components/AgentSidebar";
 import AvatarScene from "@/components/AvatarScene";
@@ -22,6 +22,12 @@ const initialMessages: ChatMessage[] = [
     role: "jarvis",
     text: "Mission stack loaded: internship, dissertation, applications, and AI portfolio.",
   },
+];
+
+const startupSequence = [
+  "Initializing JARVIS...",
+  "Loading Systems...",
+  "Good evening, Sid.",
 ];
 
 const responseMap = [
@@ -97,11 +103,25 @@ export default function Home() {
   const [status, setStatus] = useState<SystemStatus>("idle");
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [isTyping, setIsTyping] = useState(false);
+  const [startupStep, setStartupStep] = useState(0);
+  const [showStartup, setShowStartup] = useState(true);
 
   const lastJarvisMessage = useMemo(
     () => [...messages].reverse().find((message) => message.role === "jarvis"),
     [messages],
   );
+
+  useEffect(() => {
+    const timers = startupSequence.map((_, index) =>
+      window.setTimeout(() => setStartupStep(index), index * 820),
+    );
+    const doneTimer = window.setTimeout(() => setShowStartup(false), 3100);
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      window.clearTimeout(doneTimer);
+    };
+  }, []);
 
   function handleAgentChange(nextAgent: AgentMode) {
     setAgent(nextAgent);
@@ -148,6 +168,40 @@ export default function Home() {
       <div className="fixed inset-0 radial-grid opacity-70" />
       <div className="fixed inset-0 scanline opacity-25" />
       <div className="fixed inset-0 hud-vignette" />
+
+      <AnimatePresence>
+        {showStartup && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.7 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#02040b]/90 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="startup-card text-center"
+            >
+              <div className="startup-core mx-auto mb-6" />
+              <p className="text-xs uppercase tracking-[0.56em] text-cyan-200/70">
+                Companion boot sequence
+              </p>
+              <AnimatePresence mode="wait">
+                <motion.h2
+                  key={startupSequence[startupStep]}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.35 }}
+                  className="mt-4 text-3xl font-black tracking-[0.18em] text-white glow-text max-sm:text-xl"
+                >
+                  {startupSequence[startupStep]}
+                </motion.h2>
+              </AnimatePresence>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.div
         initial={{ opacity: 0, y: -20 }}
